@@ -9,5 +9,6 @@ namespace Sandwych.Aston
         INodeFactory<TNode> NodeFactory { get; }
         IReadOnlyDictionary<string, Symbol> Symbols { get; }
         IReadOnlyDictionary<string, TNode> Parameters { get; }
+        IReadOnlyDictionary<string, FunctionDescriptor<TNode>> Functions { get; }
     }
 }

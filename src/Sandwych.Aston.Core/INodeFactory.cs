@@ -15,7 +15,7 @@ namespace Sandwych.Aston
         TNode CreateLongIntegerLiteralNode(long value);
         TNode CreateDoubleLiteralNode(double value);
         TNode CreateVectorNode(IEnumerable<TNode> items);
-        TNode CreateListEvaluationNode(string symbol, IEnumerable<TNode> elements);
+        TNode CreateListEvaluationNode(IParseContext<TNode> context, string symbol, IEnumerable<TNode> elements);
         TNode CreateCustomLiteralNode(object value);
         TNode CreateMemberAccessNode(TNode objExpr, IEnumerable<string> memberPath);
         TNode CreateParameterNode(Type type, string name);

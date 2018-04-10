@@ -59,10 +59,7 @@ namespace Sandwych.Aston
                 .Select(x => _nodeFactory.CreateDoubleLiteralNode(x))
                 .Labelled("float-literal");
 
-            var stringLiteral =
-                Char('\\').Then(AstonTokens.EscapeCharacter).Or(Token(c => c != '"'))
-                .ManyString()
-                .Between(AstonTokens.Quote)
+            var stringLiteral = AstonTokens.StringToken
                 .Labelled("string literal")
                 .Select(x => _nodeFactory.CreateStringLiteralNode(x));
 
@@ -128,7 +125,7 @@ namespace Sandwych.Aston
                 .Labelled("list-body");
 
             listEvaluation = Map(
-                (sym, elements) => _nodeFactory.CreateListEvaluationNode(sym, elements),
+                (sym, elements) => _nodeFactory.CreateListEvaluationNode(context, sym, elements),
                 symbol.Between(SkipWhitespaces),
                 listBody.Between(AstonTokens.LParenthese, AstonTokens.RParenthese)
             ).Labelled("list-evaluation");

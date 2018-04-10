@@ -27,9 +27,13 @@ namespace Sandwych.Aston
         public static readonly Parser<char, char> Minus = Char('-');
         public static readonly Parser<char, char> Dot = Char('.');
 
-        public static readonly Parser<char, char> EscapeCharacter =
+        public static readonly Parser<char, char> DoubleQuotedEscapeCharacter =
             OneOf('"', 'n', 'r', 't', '\\')
-            .Labelled("escape character");
+            .Labelled("double-quoted-escape-character");
+
+        public static readonly Parser<char, char> SingleQuotedEscapeCharacter =
+            OneOf('\'', 'n', 'r', 't', '\\')
+            .Labelled("single-quoted-escape-character");
 
         public static readonly Parser<char, string> IdentifierToken = Token(c => c == '_' || char.IsLetter(c))
             .Then(Token(char.IsLetterOrDigit).Many(), MakeString)
@@ -45,6 +49,18 @@ namespace Sandwych.Aston
 
         public static readonly Parser<char, string> SymbolToken = FirstSymbolCharacter
                 .Then(AllSymbolCharacter.Many(), MakeString);
+
+        public static readonly Parser<char, string> DoubleQuotedStringToken =
+            Char('\\').Then(DoubleQuotedEscapeCharacter).Or(Token(c => c != '"'))
+            .ManyString()
+            .Between(Quote);
+
+        public static readonly Parser<char, string> SingleQuotedStringToken =
+            Char('\\').Then(SingleQuotedEscapeCharacter).Or(Token(c => c != '\''))
+            .ManyString()
+            .Between(SingleQuote);
+
+        public static readonly Parser<char, string> StringToken = SingleQuotedStringToken.Or(DoubleQuotedStringToken);
 
         public static readonly Parser<char, int> IntegerToken = DecimalNum.Between(Whitespaces);
 
@@ -74,6 +90,15 @@ namespace Sandwych.Aston
                 RealNumber,
                 Char('F').Or(Char('f')));
 
+        public static readonly Parser<char, decimal> DecimalToken =
+            Map((num, suffix) => decimal.Parse(string.Concat(num)),
+                RealNumber,
+                Char('M').Or(Char('m')));
+
+        public static readonly Parser<char, Guid> UuidToken =
+            Map((prefix, uuid) => Guid.Parse(string.Concat(uuid)),
+                String("uuid"),
+                StringToken);
 
         private static IEnumerable<char> MakeCharSeq(char first, IEnumerable<char> rest)
         {

@@ -26,7 +26,10 @@ namespace Sandwych.Aston.ExampleApp
                 new Employee{ Name = "Dwight Schrute", Age = 34},
             };
 
-            var selected = employees.AsQueryable().Where("==(it.Name, \"Pam Beesly\")");
+            //this equals to C# expression: it => it.Name == "Pam Beesly" && it.Age > 30 && it.Age < 40
+            var expression = "and(eq(it.Name, \"Pam Beesly\"), gt(it.Age, 30), lt(it.Age, 40))";
+
+            var selected = employees.AsQueryable().Where(expression);
             foreach (var e in selected)
             {
                 Console.WriteLine(e);
