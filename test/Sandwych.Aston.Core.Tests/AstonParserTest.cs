@@ -53,7 +53,7 @@ namespace Sandwych.Aston.Tests
         [Fact]
         public void NestedFuncCallingShouldBeOk()
         {
-            Assert.True(this.TryEvaluate<bool>("eq(+(1, 2), 3)", out var result));
+            Assert.True(this.TryEvaluate<bool>("eq(add(1, 2), 3)", out var result));
             Assert.True(result);
         }
 

@@ -22,7 +22,15 @@ namespace Sandwych.Aston.Linq.Expressions
         protected override void OnRegisterBuiltinFunctions()
         {
             this.RegisterFunction("eval", false, 1, args => args.Single());
-            this.RegisterFunction("if", false, 3, args => Expression.Condition(args.First(), args.Skip(1).First(), args.Skip(2).First()));
+            this.RegisterFunction("if", false, 3, args => Expression.Condition(args.First(), args.Second(), args.Third()));
+
+            // arithmetic operation related functions:
+            this.RegisterFunction("add", true, 2, args => args.Aggregate((e1, e2) => Expression.Add(e1, e2)));
+            this.RegisterFunction("sub", true, 2, args => args.Aggregate((e1, e2) => Expression.Subtract(e1, e2)));
+            this.RegisterFunction("mul", true, 2, args => args.Aggregate((e1, e2) => Expression.Multiply(e1, e2)));
+            this.RegisterFunction("div", true, 2, args => args.Aggregate((e1, e2) => Expression.Divide(e1, e2)));
+            this.RegisterFunction("pow", true, 2, args => args.Aggregate((e1, e2) => Expression.Power(e1, e2)));
+            this.RegisterFunction("mod", true, 2, args => args.Aggregate((e1, e2) => Expression.Modulo(e1, e2)));
 
             //comparsion functions:
             this.RegisterFunction("eq", true, 2, args => args.Aggregate((e1, e2) => Expression.Equal(e1, e2)));
@@ -41,14 +49,14 @@ namespace Sandwych.Aston.Linq.Expressions
             this.RegisterFunction("not", false, 1, args => args.Aggregate((e1, e2) => Expression.Not(e1)));
             this.RegisterFunction("between", false, 3,
                 args => Expression.AndAlso(
-                            Expression.LessThanOrEqual(args.First(), args.Skip(1).First()),
-                            Expression.GreaterThanOrEqual(args.First(), args.Skip(2).First())));
+                            Expression.LessThanOrEqual(args.First(), args.Second()),
+                            Expression.GreaterThanOrEqual(args.First(), args.Third())));
 
             //collection related functions:
             this.RegisterFunction("contains", false, 2, args =>
             {
                 var enumerableExpression = args.First();
-                var elementExpression = args.Skip(1).First();
+                var elementExpression = args.Second();
                 var containsMethod = new Func<IEnumerable<object>, object, bool>(Enumerable.Contains)
                     .GetMethodInfo()
                     .GetGenericMethodDefinition();
@@ -58,7 +66,7 @@ namespace Sandwych.Aston.Linq.Expressions
 
             this.RegisterFunction("in", false, 2, args =>
             {
-                var enumerableExpression = args.Skip(1).First();
+                var enumerableExpression = args.Second();
                 var elementExpression = args.First();
                 var containsMethod = new Func<IEnumerable<object>, object, bool>(Enumerable.Contains)
                     .GetMethodInfo()
@@ -68,25 +76,25 @@ namespace Sandwych.Aston.Linq.Expressions
             });
 
             //string related functions
-            this.RegisterFunction("starts-with", true, 2, args =>
+            this.RegisterFunction("starts-with", false, 2, args =>
             {
                 var method = typeof(string).GetMethod(nameof(string.StartsWith), new Type[] { typeof(string) });
-                return Expression.Call(args.First(), method, args.Skip(1).First());
+                return Expression.Call(args.First(), method, args.Second());
             });
 
-            this.RegisterFunction("ends-with", true, 2, args =>
+            this.RegisterFunction("ends-with", false, 2, args =>
             {
                 var method = typeof(string).GetMethod(nameof(string.EndsWith), new Type[] { typeof(string) });
-                return Expression.Call(args.First(), method, args.Skip(1).First());
+                return Expression.Call(args.First(), method, args.Second());
             });
 
-            this.RegisterFunction("to-lower", true, 1, args =>
+            this.RegisterFunction("to-lower", false, 1, args =>
             {
                 var method = typeof(string).GetMethod(nameof(string.ToLowerInvariant));
                 return Expression.Call(args.First(), method);
             });
 
-            this.RegisterFunction("to-upper", true, 1, args =>
+            this.RegisterFunction("to-upper", false, 1, args =>
             {
                 var method = typeof(string).GetMethod(nameof(string.ToUpperInvariant));
                 return Expression.Call(args.First(), method);
