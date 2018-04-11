@@ -64,10 +64,8 @@ namespace Sandwych.Aston
 
         public static readonly Parser<char, int> IntegerToken = DecimalNum.Between(Whitespaces);
 
-        public static readonly Parser<char, char> LongIntegerSuffix = Char('L').Or(Char('l'));
-
         public static readonly Parser<char, long> LongIntegerToken =
-            Map((num, suffix) => num, LongNum, LongIntegerSuffix);
+            Map((num, suffix) => num, LongNum, Char('L').Or(Char('l')));
 
         public static readonly Parser<char, IEnumerable<char>> RealNumberFractionalPart =
             Map(MakeCharSeq, Char('.'), Digit.AtLeastOnce());

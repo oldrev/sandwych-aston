@@ -32,24 +32,31 @@ namespace Sandwych.Aston.Linq
 
         private static Expression<Func<TSource, bool>> ParseWherePredicate<TSource>(string sexpr)
         {
-            var parseContext = new LinqExpressionParseContext(typeof(TSource));
-            parseContext.RegisterParameter(typeof(TSource), "it");
-            var parser = new AstonParser<Expression>(parseContext);
-            var paramIt = (ParameterExpression)parseContext.Parameters.Values.Single();
-            var parsedExpression = parser.RootParser.ParseOrThrow(sexpr);
-            var evalContext = new EvaluationContext();
-            var filterExpression = (new BindingEvaluationContextExpressionVisitor(evalContext)).Visit(parsedExpression);
-            return Expression.Lambda<Func<TSource, bool>>(filterExpression, paramIt);
+            var parsed = ParseSingleParameterAstonExpression(typeof(TSource), sexpr);
+            return Expression.Lambda<Func<TSource, bool>>(parsed.filterExpression, parsed.parameterExpression);
         }
 
         private static Expression ParseUntypedWherePredicate(
             Type sourceType, string sexpr)
         {
-            var parser = new AstonParser<Expression>(new LinqExpressionParseContext(sourceType));
-            var param = Expression.Parameter(sourceType);
-            var filterExpr = parser.Parse(sexpr).Value;
+            var parsed = ParseSingleParameterAstonExpression(sourceType, sexpr);
             var lambdaType = typeof(Func<,>).GetTypeInfo().MakeGenericType(sourceType, typeof(bool));
-            return Expression.Lambda(lambdaType, filterExpr, param);
+            return Expression.Lambda(lambdaType, parsed.filterExpression, parsed.parameterExpression);
+        }
+
+        private static (ParameterExpression parameterExpression, Expression filterExpression)
+            ParseSingleParameterAstonExpression(Type sourceType, string sexpr)
+        {
+            var parseContextBuilder = new LinqExpressionParseContextBuilder();
+            var parseContext = parseContextBuilder.Build();
+            var nodeFactory = new LinqExpressionFactory(sourceType);
+            parseContext.RegisterParameter(nodeFactory, sourceType, "it");
+            var parser = new AstonParser<Expression>(nodeFactory);
+            var paramIt = (ParameterExpression)parseContext.Parameters.Values.Single();
+            var parsedExpression = parser.Parse(sexpr, parseContext);
+            var evalContext = new EvaluationContext();
+            var filterExpression = (new BindingEvaluationContextExpressionVisitor(evalContext)).Visit(parsedExpression);
+            return (paramIt, filterExpression);
         }
 
         private static MethodInfo Where_TSource_2(Type TSource)

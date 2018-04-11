@@ -6,24 +6,24 @@ namespace Sandwych.Aston
 {
     public interface INodeFactory<TNode>
     {
-        IMemberAccessStrategy<TNode> MemberAccessStrategy { get; }
+        IMemberAccessStrategy MemberAccessStrategy { get; }
 
-        TNode CreateNullLiteralNode();
-        TNode CreateBooleanLiteralNode(bool value);
-        TNode CreateStringLiteralNode(string value);
-        TNode CreateIntegerLiteralNode(int value);
-        TNode CreateLongIntegerLiteralNode(long value);
-        TNode CreateDoubleLiteralNode(double value);
-        TNode CreateFloatLiteralNode(float value);
-        TNode CreateDecimalLiteralNode(decimal value);
-        TNode CreateGuidLiteralNode(Guid value);
-        TNode CreateDateTimeLiteralNode(DateTime value);
-        TNode CreateDateTimeOffsetLiteralNode(DateTimeOffset value);
+        TNode CreateNullLiteralValueNode();
+        TNode CreateLiteralValueNode(bool value);
+        TNode CreateLiteralValueNode(string value);
+        TNode CreateLiteralValueNode(int value);
+        TNode CreateLiteralValueNode(long value);
+        TNode CreateLiteralValueNode(double value);
+        TNode CreateLiteralValueNode(float value);
+        TNode CreateLiteralValueNode(decimal value);
+        TNode CreateLiteralValueNode(Guid value);
+        TNode CreateLiteralValueNode(DateTime value);
+        TNode CreateLiteralValueNode(DateTimeOffset value);
         TNode CreateVectorNode(IEnumerable<TNode> items);
-        TNode CreateListEvaluationNode(IParseContext<TNode> context, string symbol, IEnumerable<TNode> elements);
-        TNode CreateCustomLiteralNode(object value);
+        TNode CreateListEvaluationNode(ParseContext<TNode> context, string symbol, IEnumerable<TNode> elements);
+        TNode CreateCustomLiteralValueNode(object value);
         TNode CreateMemberAccessNode(TNode objExpr, IEnumerable<string> memberPath);
         TNode CreateParameterNode(Type type, string name);
-        TNode CreateSymbolAccessNode(IParseContext<TNode> context, string variable);
+        TNode CreateSymbolAccessNode(ParseContext<TNode> context, string variable);
     }
 }

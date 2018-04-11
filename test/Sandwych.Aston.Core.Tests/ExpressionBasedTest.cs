@@ -11,11 +11,13 @@ namespace Sandwych.Aston.Tests
     {
         protected bool TryEvaluate<T>(string expression, out T result)
         {
-            var parser = new AstonParser<Expression>(new LinqExpressionParseContext(typeof(T)));
-            var parsed = parser.Parse(expression);
-            if (parsed.Success)
+            var parseContextBuilder = new LinqExpressionParseContextBuilder();
+            var parseContext = parseContextBuilder.Build();
+            var nodeFactory = new LinqExpressionFactory(typeof(T));
+            var parser = new AstonParser<Expression>(nodeFactory);
+            if (parser.TryParse(expression, out var parsed))
             {
-                var expr = Expression.Lambda(parsed.Value);
+                var expr = Expression.Lambda(parsed);
                 var dg = expr.Compile();
                 result = (T)dg.DynamicInvoke();
                 return true;

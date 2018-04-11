@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Sandwych.Aston.Linq.Expressions
 {
-    public partial class LinqExpressionFactory 
+    public partial class LinqExpressionFactory
     {
         public Expression CreateMemberAccessNode(Expression objExpr, IEnumerable<string> memberPath)
         {
@@ -21,6 +21,11 @@ namespace Sandwych.Aston.Linq.Expressions
 
         private Expression MakeMemberAccessExpression(Expression objExpr, string name)
         {
+            if (!this.MemberAccessStrategy.IsAllowed(objExpr, name))
+            {
+                throw new InvalidOperationException($"Accessing the member '{name}' is not allowed.");
+            }
+
             var propertyExpr = Expression.PropertyOrField(objExpr, name);
             var mi = this.GetPropertyInfo(objExpr.Type, name);
             return Expression.MakeMemberAccess(objExpr, mi);

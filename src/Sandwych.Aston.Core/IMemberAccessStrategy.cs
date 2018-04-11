@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Sandwych.Aston
 {
-    public interface IMemberAccessStrategy<TNode>
+    public interface IMemberAccessStrategy
     {
-        bool IsAllowed(TNode objExpr, string memberName);
+        bool IsAllowed(object objExprNode, string memberName);
 
         void Register(Type type, string name);
     }

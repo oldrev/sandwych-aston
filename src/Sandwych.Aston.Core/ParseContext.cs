@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Sandwych.Aston
 {
-    public abstract class AbstractParseContext<TNode> : IParseContext<TNode>
+    public class ParseContext<TNode>
     {
         private readonly Dictionary<string, Symbol> _symbols = new Dictionary<string, Symbol>();
         private readonly Dictionary<string, TNode> _parameters = new Dictionary<string, TNode>();
@@ -16,14 +16,10 @@ namespace Sandwych.Aston
 
         public IReadOnlyDictionary<string, FunctionDescriptor<TNode>> Functions => _functions;
 
-        public INodeFactory<TNode> NodeFactory { get; }
-
         public IReadOnlyDictionary<string, TNode> Parameters => _parameters;
 
-        public AbstractParseContext(INodeFactory<TNode> nodeFactory, IEnumerable<Symbol> symbols = null)
+        public ParseContext(IEnumerable<Symbol> symbols = null)
         {
-            this.NodeFactory = nodeFactory ?? throw new ArgumentNullException(nameof(nodeFactory));
-
             if (symbols != null)
             {
                 foreach (var symbol in symbols)
@@ -31,13 +27,10 @@ namespace Sandwych.Aston
                     _symbols.Add(symbol.Name, symbol);
                 }
             }
-
-            this.OnRegisterBuiltinFunctions();
         }
 
-        public AbstractParseContext(INodeFactory<TNode> nodeFactory, Type singleParameterType, IEnumerable<Symbol> additionalSymbols = null)
+        public ParseContext(Type singleParameterType, IEnumerable<Symbol> additionalSymbols = null)
         {
-            this.NodeFactory = nodeFactory ?? throw new ArgumentNullException(nameof(nodeFactory));
             if (additionalSymbols != null)
             {
                 foreach (var symbol in additionalSymbols)
@@ -45,15 +38,13 @@ namespace Sandwych.Aston
                     _symbols.Add(symbol.Name, symbol);
                 }
             }
-
-            this.OnRegisterBuiltinFunctions();
         }
 
-        public void RegisterParameter(Type type, string symbol)
+        public void RegisterParameter(INodeFactory<TNode> nodeFactory, Type type, string symbol)
         {
             _symbols.Add(symbol, new Symbol(symbol, SymbolType.Parameter, type));
-            var parameterExpr = this.NodeFactory.CreateParameterNode(type, symbol);
-            _parameters.Add(symbol, parameterExpr);
+            var parameterNode = nodeFactory.CreateParameterNode(type, symbol);
+            _parameters.Add(symbol, parameterNode);
         }
 
         public void RegisterFunction(FunctionDescriptor<TNode> func)
@@ -66,8 +57,7 @@ namespace Sandwych.Aston
         }
 
         public void RegisterFunction(
-            string name, bool isParameterVariadic, int parametersCount,
-            Func<IEnumerable<TNode>, TNode> invocationFactory)
+            string name, bool isParameterVariadic, int parametersCount, Func<IEnumerable<TNode>, TNode> invocationFactory)
         {
             var func = new FunctionDescriptor<TNode>()
             {
@@ -86,8 +76,6 @@ namespace Sandwych.Aston
                 this.RegisterFunction(func);
             }
         }
-
-        protected abstract void OnRegisterBuiltinFunctions();
 
     }
 }

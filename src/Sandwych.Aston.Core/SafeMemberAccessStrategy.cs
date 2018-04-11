@@ -7,11 +7,11 @@ using System.Text;
 
 namespace Sandwych.Aston.Linq.Expressions
 {
-    public class SafeMemberAccessStrategy<TNode> : IMemberAccessStrategy<TNode>
+    public class SafeMemberAccessStrategy<TNode> : IMemberAccessStrategy
     {
         private HashSet<string> _allowedMembers = new HashSet<string>();
 
-        private readonly IMemberAccessStrategy<TNode> _parent;
+        private readonly IMemberAccessStrategy _parent;
         private readonly INodeClrTypeEvaluator<TNode> _clrTypeEvaluator;
 
         public SafeMemberAccessStrategy(INodeClrTypeEvaluator<TNode> clrTypeEvaluator)
@@ -20,7 +20,7 @@ namespace Sandwych.Aston.Linq.Expressions
         }
 
         public SafeMemberAccessStrategy(
-            IMemberAccessStrategy<TNode> parent,
+            IMemberAccessStrategy parent,
             INodeFactory<TNode> nodeFactory,
             INodeClrTypeEvaluator<TNode> clrTypeEvaluator)
             : this(clrTypeEvaluator)
@@ -28,9 +28,9 @@ namespace Sandwych.Aston.Linq.Expressions
             _parent = parent;
         }
 
-        public bool IsAllowed(TNode objExpr, string name)
+        public bool IsAllowed(object objExpr, string name)
         {
-            var objType = _clrTypeEvaluator.Evaluate(objExpr);
+            var objType = _clrTypeEvaluator.Evaluate((TNode)objExpr);
             if (_allowedMembers.Count > 0)
             {
                 while (objType != null)

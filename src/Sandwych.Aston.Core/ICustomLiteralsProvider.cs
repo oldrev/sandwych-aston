@@ -7,8 +7,8 @@ using static Pidgin.Parser<char>;
 
 namespace Sandwych.Aston
 {
-    public interface ICustomLiteralProvider<TNode>
+    public interface ICustomLiteralsProvider
     {
-        IEnumerable<Parser<char, TNode>> GetLiteralParsers();
+        IEnumerable<Parser<char, TNode>> GetLiteralParsers<TNode>();
     }
 }

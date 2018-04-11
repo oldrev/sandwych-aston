@@ -11,66 +11,56 @@ namespace Sandwych.Aston.Linq.Expressions
     {
         private static readonly IEnumerable<Expression> EmptyArguments = new Expression[] { };
 
-        public IMemberAccessStrategy<Expression> MemberAccessStrategy { get; }
+        public IMemberAccessStrategy MemberAccessStrategy { get; }
 
-        public LinqExpressionFactory(IMemberAccessStrategy<Expression> memberAccessStrategy) : this()
+        public LinqExpressionFactory(IMemberAccessStrategy memberAccessStrategy)
         {
             this.MemberAccessStrategy = memberAccessStrategy ?? throw new ArgumentNullException(nameof(memberAccessStrategy));
         }
 
-        public LinqExpressionFactory(Type rootObjectType) : this()
+        public LinqExpressionFactory(Type rootObjectType)
         {
             this.MemberAccessStrategy = new SafeMemberAccessStrategy<Expression>(new LinqExpressionNodeClrTypeEvaluator());
             this.MemberAccessStrategy.Register(rootObjectType, "*");
         }
 
-        private LinqExpressionFactory()
-        {
-            this.RegisterBuiltinFunctions();
-        }
-
-        private void RegisterBuiltinFunctions()
-        {
-
-        }
-
-        public virtual Expression CreateNullLiteralNode() =>
+        public virtual Expression CreateNullLiteralValueNode() =>
             Expression.Constant(null);
 
-        public virtual Expression CreateBooleanLiteralNode(bool value) =>
+        public virtual Expression CreateLiteralValueNode(bool value) =>
             Expression.Constant(value);
 
-        public virtual Expression CreateIntegerLiteralNode(int value) =>
+        public virtual Expression CreateLiteralValueNode(int value) =>
             Expression.Constant(value);
 
-        public virtual Expression CreateLongIntegerLiteralNode(long value) =>
+        public virtual Expression CreateLiteralValueNode(long value) =>
             Expression.Constant(value);
 
-        public virtual Expression CreateDoubleLiteralNode(double value) =>
+        public virtual Expression CreateLiteralValueNode(double value) =>
             Expression.Constant(value);
 
-        public virtual Expression CreateFloatLiteralNode(float value) =>
+        public virtual Expression CreateLiteralValueNode(float value) =>
             Expression.Constant(value);
 
-        public Expression CreateDecimalLiteralNode(decimal value) =>
+        public Expression CreateLiteralValueNode(decimal value) =>
             Expression.Constant(value);
 
-        public Expression CreateGuidLiteralNode(Guid value) =>
+        public Expression CreateLiteralValueNode(Guid value) =>
             Expression.Constant(value);
 
-        public Expression CreateDateTimeLiteralNode(DateTime value) =>
+        public Expression CreateLiteralValueNode(DateTime value) =>
             Expression.Constant(value);
 
-        public Expression CreateDateTimeOffsetLiteralNode(DateTimeOffset value) =>
+        public Expression CreateLiteralValueNode(DateTimeOffset value) =>
             Expression.Constant(value);
 
-        public virtual Expression CreateStringLiteralNode(string value) =>
+        public virtual Expression CreateLiteralValueNode(string value) =>
             Expression.Constant(value);
 
         public virtual Expression CreateVectorNode(IEnumerable<Expression> items) =>
             Expression.NewArrayInit(typeof(object), items);
 
-        public virtual Expression CreateListEvaluationNode(IParseContext<Expression> context, string funcName, IEnumerable<Expression> args)
+        public virtual Expression CreateListEvaluationNode(ParseContext<Expression> context, string funcName, IEnumerable<Expression> args)
         {
             if (context.Functions.TryGetValue(funcName, out var func))
             {
@@ -101,7 +91,7 @@ namespace Sandwych.Aston.Linq.Expressions
             }
         }
 
-        public virtual Expression CreateCustomLiteralNode(object value)
+        public virtual Expression CreateCustomLiteralValueNode(object value)
         {
             throw new NotImplementedException();
         }
@@ -110,7 +100,7 @@ namespace Sandwych.Aston.Linq.Expressions
             Expression.Parameter(type, name);
 
 
-        public virtual Expression CreateSymbolAccessNode(IParseContext<Expression> context, string symbolName)
+        public virtual Expression CreateSymbolAccessNode(ParseContext<Expression> context, string symbolName)
         {
             if (string.IsNullOrEmpty(symbolName))
             {
