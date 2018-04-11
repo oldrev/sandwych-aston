@@ -9,7 +9,7 @@ namespace Sandwych.Aston
     public class ParseContext<TNode>
     {
         private readonly Dictionary<string, Symbol> _symbols = new Dictionary<string, Symbol>();
-        private readonly Dictionary<string, TNode> _parameters = new Dictionary<string, TNode>();
+        private readonly Dictionary<string, TNode> _parameters = new Dictionary<string, TNode>(4);
         private readonly Dictionary<string, FunctionDescriptor<TNode>> _functions = new Dictionary<string, FunctionDescriptor<TNode>>();
 
         public IReadOnlyDictionary<string, Symbol> Symbols => _symbols;

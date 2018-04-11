@@ -54,7 +54,7 @@ namespace Sandwych.Aston.Linq
             var parser = new AstonParser<Expression>(nodeFactory);
             var paramIt = (ParameterExpression)parseContext.Parameters.Values.Single();
             var parsedExpression = parser.Parse(sexpr, parseContext);
-            var evalContext = new EvaluationContext();
+            var evalContext = EvaluationContext.Empty;
             var filterExpression = (new BindingEvaluationContextExpressionVisitor(evalContext)).Visit(parsedExpression);
             return (paramIt, filterExpression);
         }
@@ -67,8 +67,6 @@ namespace Sandwych.Aston.Linq
                     .GetGenericMethodDefinition();
             return method.MakeGenericMethod(TSource);
         }
-
-
 
     }
 

@@ -6,6 +6,8 @@ namespace Sandwych.Aston
 {
     public class EvaluationContext : IEvaluationContext
     {
+        public static readonly EvaluationContext Empty = new EvaluationContext();
+
         public IReadOnlyDictionary<string, object> Variables { get; }
 
         public EvaluationContext(IReadOnlyDictionary<string, object> variables = null)
