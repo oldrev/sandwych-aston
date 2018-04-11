@@ -8,7 +8,7 @@ using static Pidgin.Parser<char>;
 
 namespace Sandwych.Aston
 {
-    public static class AstonTokens
+    public static class Tokens
     {
         public static readonly Parser<char, Unit> SkipWhitespacesOrComment =
             SkipWhitespaces;
@@ -95,9 +95,19 @@ namespace Sandwych.Aston
                 RealNumber,
                 Char('M').Or(Char('m')));
 
-        public static readonly Parser<char, Guid> UuidToken =
+        public static readonly Parser<char, Guid> GuidToken =
             Map((prefix, uuid) => Guid.Parse(string.Concat(uuid)),
-                String("uuid"),
+                String("guid"),
+                StringToken);
+
+        public static readonly Parser<char, DateTime> DateTimeToken =
+            Map((prefix, dateTime) => DateTime.Parse(string.Concat(dateTime)),
+                String("dt"),
+                StringToken);
+
+        public static readonly Parser<char, DateTimeOffset> DateTimeOffsetToken =
+            Map((prefix, dateTimeOffset) => DateTimeOffset.Parse(string.Concat(dateTimeOffset)),
+                String("dto"),
                 StringToken);
 
         private static IEnumerable<char> MakeCharSeq(char first, IEnumerable<char> rest)

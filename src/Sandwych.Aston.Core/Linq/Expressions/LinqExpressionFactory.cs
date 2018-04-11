@@ -49,6 +49,21 @@ namespace Sandwych.Aston.Linq.Expressions
         public virtual Expression CreateDoubleLiteralNode(double value) =>
             Expression.Constant(value);
 
+        public virtual Expression CreateFloatLiteralNode(float value) =>
+            Expression.Constant(value);
+
+        public Expression CreateDecimalLiteralNode(decimal value) =>
+            Expression.Constant(value);
+
+        public Expression CreateGuidLiteralNode(Guid value) =>
+            Expression.Constant(value);
+
+        public Expression CreateDateTimeLiteralNode(DateTime value) =>
+            Expression.Constant(value);
+
+        public Expression CreateDateTimeOffsetLiteralNode(DateTimeOffset value) =>
+            Expression.Constant(value);
+
         public virtual Expression CreateStringLiteralNode(string value) =>
             Expression.Constant(value);
 
@@ -122,6 +137,5 @@ namespace Sandwych.Aston.Linq.Expressions
                 throw new ArgumentOutOfRangeException(symbolName);
             }
         }
-
     }
 }

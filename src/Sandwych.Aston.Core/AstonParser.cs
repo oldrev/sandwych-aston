@@ -39,53 +39,80 @@ namespace Sandwych.Aston
             var booleanLiteralParser = trueLiteralParser.Or(falseLiteralParser).Select(x => _nodeFactory.CreateBooleanLiteralNode(x));
 
             var integerLiteral =
-                AstonTokens.IntegerToken
+                Tokens.IntegerToken
                 .Between(SkipWhitespaces)
                 .Select(x => _nodeFactory.CreateIntegerLiteralNode(x))
                 .Labelled("integer-literal");
 
-            var longIntegerLiteral = AstonTokens.LongIntegerToken
+            var longIntegerLiteral = Tokens.LongIntegerToken
                 .Between(SkipWhitespaces)
                 .Select(x => _nodeFactory.CreateLongIntegerLiteralNode(x))
                 .Labelled("long-integer-literal");
 
-            var doubleLiteral = AstonTokens.DoubleToken
+            var doubleLiteral = Tokens.DoubleToken
                 .Between(SkipWhitespaces)
                 .Select(x => _nodeFactory.CreateDoubleLiteralNode(x))
                 .Labelled("double-literal");
 
-            var floatLiteral = AstonTokens.FloatToken
+            var floatLiteral = Tokens.FloatToken
                 .Between(SkipWhitespaces)
-                .Select(x => _nodeFactory.CreateDoubleLiteralNode(x))
+                .Select(x => _nodeFactory.CreateFloatLiteralNode(x))
                 .Labelled("float-literal");
 
-            var stringLiteral = AstonTokens.StringToken
+            var decimalLiteral = Tokens.DecimalToken
+                .Between(SkipWhitespaces)
+                .Select(x => _nodeFactory.CreateDecimalLiteralNode(x))
+                .Labelled("decimal-literal");
+
+            var numberLiteral = OneOf(
+                Try(decimalLiteral),
+                Try(floatLiteral),
+                Try(doubleLiteral),
+                Try(longIntegerLiteral),
+                Try(integerLiteral)
+            );
+
+            var stringLiteral = Tokens.StringToken
                 .Labelled("string literal")
                 .Select(x => _nodeFactory.CreateStringLiteralNode(x));
 
-            var numberLiteral = OneOf(
-                Try(longIntegerLiteral),
-                Try(floatLiteral),
-                Try(doubleLiteral),
-                Try(integerLiteral)
-            );
+            var guidLiteral = Tokens.GuidToken
+                .Between(SkipWhitespaces)
+                .Select(x => _nodeFactory.CreateGuidLiteralNode(x))
+                .Labelled("guid-literal");
+
+            var dateTimeLiteral = Tokens.DateTimeToken
+                .Between(SkipWhitespaces)
+                .Select(x => _nodeFactory.CreateDateTimeLiteralNode(x))
+                .Labelled("datetime-literal");
+
+            var dateTimeOffsetLiteral = Tokens.DateTimeOffsetToken
+                .Between(SkipWhitespaces)
+                .Select(x => _nodeFactory.CreateDateTimeOffsetLiteralNode(x))
+                .Labelled("datetimeoffset-literal");
+
+            var instantLiteral = OneOf(Try(dateTimeOffsetLiteral), Try(dateTimeLiteral));
 
             var builtinLiteral = OneOf(
                 Try(nullLiteral),
                 Try(booleanLiteralParser),
                 Try(stringLiteral),
+                Try(guidLiteral),
+                instantLiteral,
                 numberLiteral
             );
 
+            var customLiterals = customLiteralProvider?.GetLiteralParsers() ?? new Parser<char, TNode>[] { };
+
             var customLiteral =
-                OneOf(customLiteralProvider?.GetLiteralParsers() ?? new Parser<char, TNode>[] { })
+                OneOf(customLiterals.Select(x => Try(x)))
                 .Labelled("custom-literal");
 
             var literal = (builtinLiteral.Or(customLiteral)).Between(SkipWhitespaces).Labelled("literal");
 
             var constant = literal;
 
-            var identifier = AstonTokens.IdentifierToken
+            var identifier = Tokens.IdentifierToken
                 .Labelled("identifier");
 
             var contextSymbolAccess = identifier
@@ -97,11 +124,11 @@ namespace Sandwych.Aston
             var navigationMemberAccess =
                     Map((variable, dot, members) => _nodeFactory.CreateMemberAccessNode(variable, members),
                     contextSymbolAccess,
-                    AstonTokens.Dot,
-                    identifier.Between(SkipWhitespaces).Separated(AstonTokens.Dot)
+                    Tokens.Dot,
+                    identifier.Between(SkipWhitespaces).Separated(Tokens.Dot)
                 ).Labelled("navigation-member-access");
 
-            var symbol = AstonTokens.SymbolToken.Labelled("symbol");
+            var symbol = Tokens.SymbolToken.Labelled("symbol");
 
             var listEvaluation = default(Parser<char, TNode>);
 
@@ -112,22 +139,22 @@ namespace Sandwych.Aston
                 .Labelled("expression");
 
             var vectorBody = expression.Between(SkipWhitespaces)
-                .Separated(AstonTokens.Comma)
+                .Separated(Tokens.Comma)
                 .Labelled("vector-body");
 
             vector = vectorBody
-                .Between(AstonTokens.LBracket, AstonTokens.RBracket)
+                .Between(Tokens.LBracket, Tokens.RBracket)
                 .Select(x => _nodeFactory.CreateVectorNode(x))
                 .Labelled("vector");
 
             var listBody = expression.Between(SkipWhitespaces)
-                .Separated(AstonTokens.Comma)
+                .Separated(Tokens.Comma)
                 .Labelled("list-body");
 
             listEvaluation = Map(
                 (sym, elements) => _nodeFactory.CreateListEvaluationNode(context, sym, elements),
                 symbol.Between(SkipWhitespaces),
-                listBody.Between(AstonTokens.LParenthese, AstonTokens.RParenthese)
+                listBody.Between(Tokens.LParenthese, Tokens.RParenthese)
             ).Labelled("list-evaluation");
 
             this.RootParser = listEvaluation;
@@ -136,19 +163,8 @@ namespace Sandwych.Aston
         public Result<char, TNode> Parse(string input) =>
             this.RootParser.Parse(input);
 
-
         private static string MakeString(IEnumerable<char> chars) =>
             string.Concat(chars);
-
-        /*
-        private static string MakeString(char first, IEnumerable<char> rest)
-        {
-            var sb = new StringBuilder();
-            sb.Append(first);
-            sb.Append(string.Concat(rest));
-            return sb.ToString();
-        }
-        */
 
         private IEnumerable<Parser<char, TNode>> GetCustomLiteralParsers()
         {
