@@ -163,7 +163,7 @@ namespace Sandwych.Aston
             this.UnboundRootParser = listEvaluation;
         }
 
-        public TNode Parse(string input, ParseContext<TNode> context = null)
+        public TNode Parse(string input, ParseContext<TNode> context)
         {
             if (this.TryParse(input, out var result, context))
             {
@@ -175,8 +175,13 @@ namespace Sandwych.Aston
             }
         }
 
-        public bool TryParse(string input, out TNode result, ParseContext<TNode> context = null)
+        public bool TryParse(string input, out TNode result, ParseContext<TNode> context)
         {
+            if(context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var unboundResult = this.UnboundRootParser.Parse(input);
             if (unboundResult.Success)
             {

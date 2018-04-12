@@ -15,7 +15,7 @@ namespace Sandwych.Aston.Tests
             var parseContext = parseContextBuilder.Build();
             var nodeFactory = new LinqExpressionFactory(typeof(T));
             var parser = new AstonParser<Expression>(nodeFactory);
-            if (parser.TryParse(expression, out var parsed))
+            if (parser.TryParse(expression, out var parsed, parseContext))
             {
                 var expr = Expression.Lambda(parsed);
                 var dg = expr.Compile();
