@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Sandwych.Aston.Tests
 {
-    public class TokensTest : ExpressionBasedTest
+    public partial class AstonParserTest
     {
         [Fact]
         public void CanParseIntegerNumbers()
@@ -59,17 +59,24 @@ namespace Sandwych.Aston.Tests
         }
 
         [Fact]
-        public void CanParseStrings()
+        public void CanParseSingleQuotedStrings()
+        {
+            var stringLiteral = "DunderMifflin";
+            string value;
+
+            //Single quoted string
+            Assert.True(this.TryEvaluate<string>($"eval('DunderMifflin')", out value));
+            Assert.Equal(stringLiteral, value);
+        }
+
+        [Fact]
+        public void CanParseDoubleQuotedStrings()
         {
             var stringLiteral = "DunderMifflin";
             string value;
 
             //Double quoted string
             Assert.True(this.TryEvaluate<string>($"eval(\"DunderMifflin\")", out value));
-            Assert.Equal(stringLiteral, value);
-
-            //Single quoted string
-            Assert.True(this.TryEvaluate<string>($"eval('DunderMifflin')", out value));
             Assert.Equal(stringLiteral, value);
         }
 
