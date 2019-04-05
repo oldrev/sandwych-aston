@@ -9,7 +9,7 @@ namespace Sandwych.Aston.Linq.Expressions
     {
         public LinqExpressionParseContextBuilder()
         {
-            this.BuiltinFunctionStrategy = LinqExpressionBuiltinFunctionsStrategy.Instance;
+            this.BuiltinFunctionStrategy = DefaultBuiltinFunctionsStrategy.Instance.Value;
         }
 
         public IBuiltinFunctionStrategy<Expression> BuiltinFunctionStrategy { get; private set; }

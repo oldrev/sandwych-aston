@@ -102,7 +102,7 @@ namespace Sandwych.Aston
                 numberLiteral
             );
 
-            var customLiterals = customLiteralProvider?
+            var customLiterals = _customLiteralProvider?
                 .GetLiteralParsers<TNode>()
                 .Select(parser => parser.Select(lit => new BoundNode(ctx => nodeFactory.CreateCustomLiteralValueNode(lit))))
                 ?? new Parser<char, BoundNode>[] { };

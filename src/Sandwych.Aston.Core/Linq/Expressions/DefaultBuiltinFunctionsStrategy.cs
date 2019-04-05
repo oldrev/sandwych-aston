@@ -7,14 +7,14 @@ using System.Text;
 
 namespace Sandwych.Aston.Linq.Expressions
 {
-    public class LinqExpressionBuiltinFunctionsStrategy : IBuiltinFunctionStrategy<Expression>
+    public class DefaultBuiltinFunctionsStrategy : IBuiltinFunctionStrategy<Expression>
     {
-        public static readonly LinqExpressionBuiltinFunctionsStrategy Instance = new LinqExpressionBuiltinFunctionsStrategy();
+        public static Lazy<IBuiltinFunctionStrategy<Expression>> Instance { get; } =
+            new Lazy<IBuiltinFunctionStrategy<Expression>>(() => new DefaultBuiltinFunctionsStrategy(), true);
 
         public void RegisterBuiltinFunctions(ParseContext<Expression> context)
         {
             context.RegisterFunction("eval", false, 1, args => args.Single());
-            context.RegisterFunction("if", false, 3, args => Expression.Condition(args.First(), args.Second(), args.Third()));
 
             // arithmetic operation related functions:
             context.RegisterFunction("add", true, 2, args => args.Aggregate((e1, e2) => Expression.Add(e1, e2)));
@@ -39,6 +39,7 @@ namespace Sandwych.Aston.Linq.Expressions
             context.RegisterFunction("and", true, 2, args => args.Aggregate((e1, e2) => Expression.AndAlso(e1, e2)));
             context.RegisterFunction("or", true, 2, args => args.Aggregate((e1, e2) => Expression.OrElse(e1, e2)));
             context.RegisterFunction("not", false, 1, args => args.Aggregate((e1, e2) => Expression.Not(e1)));
+
             context.RegisterFunction("between", false, 3,
                 args => Expression.AndAlso(
                             Expression.LessThanOrEqual(args.First(), args.Second()),

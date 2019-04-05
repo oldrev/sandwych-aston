@@ -27,12 +27,14 @@ namespace Sandwych.Aston.ExampleApp
             };
 
             //this equals to C# expression: it => it.Name == "Pam Beesly" && it.Age > 30 && it.Age <= (32 + 0)
-            var expression = "and(eq(it.Name, \"Pam Beesly\"), gt(it.Age, 30), le(it.Age, add(32, 0)))";
+            var expression = "and(ends-with(it.Name, \"Beesly\"), gt(it.Age, 30), le(it.Age, add(45, 0)))";
+            Console.WriteLine("Filter expression: {0}", expression);
 
             var selected = employees.AsQueryable().Where(expression);
+            Console.WriteLine("Filtered employees:");
             foreach (var e in selected)
             {
-                Console.WriteLine(e);
+                Console.WriteLine("\t{0}", e);
             }
 
             Console.ReadKey();
