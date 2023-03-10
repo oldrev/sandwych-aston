@@ -5,10 +5,9 @@ using Pidgin;
 using static Pidgin.Parser;
 using static Pidgin.Parser<char>;
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston; 
+
+public interface ICustomLiteralsProvider
 {
-    public interface ICustomLiteralsProvider
-    {
-        IEnumerable<Parser<char, TNode>> GetLiteralParsers<TNode>();
-    }
+    IEnumerable<Parser<char, TNode>> GetLiteralParsers<TNode>();
 }

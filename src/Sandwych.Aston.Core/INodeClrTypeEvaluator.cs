@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston;
+
+public interface INodeClrTypeEvaluator<TNode>
 {
-    public interface INodeClrTypeEvaluator<TNode>
-    {
-        Type Evaluate(TNode node);
-    }
+    Type Evaluate(TNode node);
 }

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston;
+
+public interface IEvaluationContext
 {
-    public interface IEvaluationContext
-    {
-        IReadOnlyDictionary<string, object> Variables { get; }
-    }
+    IReadOnlyDictionary<string, object> Variables { get; }
 }

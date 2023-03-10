@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston;
+
+public enum SymbolType
 {
-    public enum SymbolType
-    {
-        ContextVariable,
-        Parameter,
-    }
+    ContextVariable,
+    Parameter,
 }

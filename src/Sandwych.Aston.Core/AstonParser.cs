@@ -15,188 +15,187 @@ using System.Reflection;
  * 
  * */
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston;
+
+public class AstonParser<TNode>
 {
-    public class AstonParser<TNode>
+    public delegate TNode BoundNode(ParseContext<TNode> context);
+
+    private readonly ICustomLiteralsProvider _customLiteralProvider;
+
+    public Parser<char, BoundNode> UnboundRootParser { get; private set; }
+
+    public AstonParser(INodeFactory<TNode> nodeFactory, ICustomLiteralsProvider customLiteralProvider = null)
     {
-        public delegate TNode BoundNode(ParseContext<TNode> context);
+        _customLiteralProvider = customLiteralProvider;
 
-        private readonly ICustomLiteralsProvider _customLiteralProvider;
+        // Literals:
+        var nullLiteral = String("null")
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateNullLiteralValueNode()));
 
-        public Parser<char, BoundNode> UnboundRootParser { get; private set; }
+        var trueLiteralParser = String("true").Select(x => true);
+        var falseLiteralParser = String("false").Select(x => false);
+        var booleanLiteralParser = trueLiteralParser.Or(falseLiteralParser)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)));
 
-        public AstonParser(INodeFactory<TNode> nodeFactory, ICustomLiteralsProvider customLiteralProvider = null)
-        {
-            _customLiteralProvider = customLiteralProvider;
+        var integerLiteral =
+            Tokens.IntegerToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("integer-literal");
 
-            // Literals:
-            var nullLiteral = String("null")
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateNullLiteralValueNode()));
+        var longIntegerLiteral = Tokens.LongIntegerToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("long-integer-literal");
 
-            var trueLiteralParser = String("true").Select(x => true);
-            var falseLiteralParser = String("false").Select(x => false);
-            var booleanLiteralParser = trueLiteralParser.Or(falseLiteralParser)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)));
+        var doubleLiteral = Tokens.DoubleToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("double-literal");
 
-            var integerLiteral =
-                Tokens.IntegerToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("integer-literal");
+        var floatLiteral = Tokens.FloatToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("float-literal");
 
-            var longIntegerLiteral = Tokens.LongIntegerToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("long-integer-literal");
+        var decimalLiteral = Tokens.DecimalToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("decimal-literal");
 
-            var doubleLiteral = Tokens.DoubleToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("double-literal");
+        var numberLiteral = OneOf(
+            Try(decimalLiteral),
+            Try(floatLiteral),
+            Try(doubleLiteral),
+            Try(longIntegerLiteral),
+            Try(integerLiteral)
+        );
 
-            var floatLiteral = Tokens.FloatToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("float-literal");
+        var stringLiteral = Tokens.StringToken
+            .Labelled("string literal")
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)));
 
-            var decimalLiteral = Tokens.DecimalToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("decimal-literal");
+        var guidLiteral = Tokens.GuidToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("guid-literal");
 
-            var numberLiteral = OneOf(
-                Try(decimalLiteral),
-                Try(floatLiteral),
-                Try(doubleLiteral),
-                Try(longIntegerLiteral),
-                Try(integerLiteral)
-            );
+        var dateTimeLiteral = Tokens.DateTimeToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("datetime-literal");
 
-            var stringLiteral = Tokens.StringToken
-                .Labelled("string literal")
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)));
+        var dateTimeOffsetLiteral = Tokens.DateTimeOffsetToken
+            .Between(SkipWhitespaces)
+            .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
+            .Labelled("datetimeoffset-literal");
 
-            var guidLiteral = Tokens.GuidToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("guid-literal");
+        var instantLiteral = OneOf(Try(dateTimeOffsetLiteral), Try(dateTimeLiteral));
 
-            var dateTimeLiteral = Tokens.DateTimeToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("datetime-literal");
+        var builtinLiteral = OneOf(
+            Try(nullLiteral),
+            Try(booleanLiteralParser),
+            Try(stringLiteral),
+            Try(guidLiteral),
+            instantLiteral,
+            numberLiteral
+        );
 
-            var dateTimeOffsetLiteral = Tokens.DateTimeOffsetToken
-                .Between(SkipWhitespaces)
-                .Select(x => new BoundNode(ctx => nodeFactory.CreateLiteralValueNode(x)))
-                .Labelled("datetimeoffset-literal");
+        var customLiterals = _customLiteralProvider?
+            .GetLiteralParsers<TNode>()
+            .Select(parser => parser.Select(lit => new BoundNode(ctx => nodeFactory.CreateCustomLiteralValueNode(lit))))
+            ?? new Parser<char, BoundNode>[] { };
 
-            var instantLiteral = OneOf(Try(dateTimeOffsetLiteral), Try(dateTimeLiteral));
+        var customLiteral =
+            OneOf(customLiterals.Select(x => Try(x)))
+            .Labelled("custom-literal");
 
-            var builtinLiteral = OneOf(
-                Try(nullLiteral),
-                Try(booleanLiteralParser),
-                Try(stringLiteral),
-                Try(guidLiteral),
-                instantLiteral,
-                numberLiteral
-            );
+        var literal = (builtinLiteral.Or(customLiteral)).Between(SkipWhitespaces).Labelled("literal");
 
-            var customLiterals = _customLiteralProvider?
-                .GetLiteralParsers<TNode>()
-                .Select(parser => parser.Select(lit => new BoundNode(ctx => nodeFactory.CreateCustomLiteralValueNode(lit))))
-                ?? new Parser<char, BoundNode>[] { };
+        var constant = literal;
 
-            var customLiteral =
-                OneOf(customLiterals.Select(x => Try(x)))
-                .Labelled("custom-literal");
+        var identifier = Tokens.IdentifierToken
+            .Labelled("identifier");
 
-            var literal = (builtinLiteral.Or(customLiteral)).Between(SkipWhitespaces).Labelled("literal");
+        var contextSymbolAccess = identifier
+            .Between(SkipWhitespaces)
+            .Select(variableName => new BoundNode(ctx => nodeFactory.CreateSymbolAccessNode(ctx, variableName)))
+            .Labelled("context-symbol-access");
 
-            var constant = literal;
+        //TODO 
+        var navigationMemberAccess =
+                Map((variable, dot, members) => new BoundNode(ctx => nodeFactory.CreateMemberAccessNode(variable.Invoke(ctx), members)),
+                contextSymbolAccess,
+                Tokens.Dot,
+                identifier.Between(SkipWhitespaces).Separated(Tokens.Dot)
+            ).Labelled("navigation-member-access");
 
-            var identifier = Tokens.IdentifierToken
-                .Labelled("identifier");
+        var symbol = Tokens.SymbolToken.Labelled("symbol");
 
-            var contextSymbolAccess = identifier
-                .Between(SkipWhitespaces)
-                .Select(variableName => new BoundNode(ctx => nodeFactory.CreateSymbolAccessNode(ctx, variableName)))
-                .Labelled("context-symbol-access");
+        var listEvaluation = default(Parser<char, BoundNode>);
 
-            //TODO 
-            var navigationMemberAccess =
-                    Map((variable, dot, members) => new BoundNode(ctx => nodeFactory.CreateMemberAccessNode(variable.Invoke(ctx), members)),
-                    contextSymbolAccess,
-                    Tokens.Dot,
-                    identifier.Between(SkipWhitespaces).Separated(Tokens.Dot)
-                ).Labelled("navigation-member-access");
+        var vector = default(Parser<char, BoundNode>);
 
-            var symbol = Tokens.SymbolToken.Labelled("symbol");
+        var expression = OneOf(Try(constant), Try(Rec(() => listEvaluation)), Try(Rec(() => vector)), Try(navigationMemberAccess))
+            .Between(SkipWhitespaces)
+            .Labelled("expression");
 
-            var listEvaluation = default(Parser<char, BoundNode>);
+        var vectorBody = expression.Between(SkipWhitespaces)
+            .Separated(Tokens.Comma)
+            .Labelled("vector-body");
 
-            var vector = default(Parser<char, BoundNode>);
+        vector = vectorBody
+            .Between(Tokens.LBracket, Tokens.RBracket)
+            .Select(elements => new BoundNode(ctx => nodeFactory.CreateVectorNode(elements.Select(e => e.Invoke(ctx)))))
+            .Labelled("vector");
 
-            var expression = OneOf(Try(constant), Try(Rec(() => listEvaluation)), Try(Rec(() => vector)), Try(navigationMemberAccess))
-                .Between(SkipWhitespaces)
-                .Labelled("expression");
+        var listBody = expression.Between(SkipWhitespaces)
+            .Separated(Tokens.Comma)
+            .Labelled("list-body");
 
-            var vectorBody = expression.Between(SkipWhitespaces)
-                .Separated(Tokens.Comma)
-                .Labelled("vector-body");
+        listEvaluation = Map(
+            (sym, elements) => new BoundNode(ctx => nodeFactory.CreateListEvaluationNode(ctx, sym, elements.Select(e => e.Invoke(ctx)))),
+            symbol.Between(SkipWhitespaces),
+            listBody.Between(Tokens.LParenthese, Tokens.RParenthese)
+        ).Labelled("list-evaluation");
 
-            vector = vectorBody
-                .Between(Tokens.LBracket, Tokens.RBracket)
-                .Select(elements => new BoundNode(ctx => nodeFactory.CreateVectorNode(elements.Select(e => e.Invoke(ctx)))))
-                .Labelled("vector");
-
-            var listBody = expression.Between(SkipWhitespaces)
-                .Separated(Tokens.Comma)
-                .Labelled("list-body");
-
-            listEvaluation = Map(
-                (sym, elements) => new BoundNode(ctx => nodeFactory.CreateListEvaluationNode(ctx, sym, elements.Select(e => e.Invoke(ctx)))),
-                symbol.Between(SkipWhitespaces),
-                listBody.Between(Tokens.LParenthese, Tokens.RParenthese)
-            ).Labelled("list-evaluation");
-
-            this.UnboundRootParser = listEvaluation;
-        }
-
-        public TNode Parse(string input, ParseContext<TNode> context)
-        {
-            if (this.TryParse(input, out var result, context))
-            {
-                return result;
-            }
-            else
-            {
-                throw new ArgumentException(nameof(context));
-            }
-        }
-
-        public bool TryParse(string input, out TNode result, ParseContext<TNode> context)
-        {
-            if(context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            var unboundResult = this.UnboundRootParser.Parse(input);
-            if (unboundResult.Success)
-            {
-                result = unboundResult.Value.Invoke(context);
-                return true;
-            }
-            else
-            {
-                result = default;
-                return false;
-            }
-        }
-
-        private static string MakeString(IEnumerable<char> chars) =>
-            string.Concat(chars);
-
+        this.UnboundRootParser = listEvaluation;
     }
+
+    public TNode Parse(string input, ParseContext<TNode> context)
+    {
+        if (this.TryParse(input, out var result, context))
+        {
+            return result;
+        }
+        else
+        {
+            throw new ArgumentException(nameof(context));
+        }
+    }
+
+    public bool TryParse(string input, out TNode result, ParseContext<TNode> context)
+    {
+        if(context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        var unboundResult = this.UnboundRootParser.Parse(input);
+        if (unboundResult.Success)
+        {
+            result = unboundResult.Value.Invoke(context);
+            return true;
+        }
+        else
+        {
+            result = default;
+            return false;
+        }
+    }
+
+    private static string MakeString(IEnumerable<char> chars) =>
+        string.Concat(chars);
+
 }

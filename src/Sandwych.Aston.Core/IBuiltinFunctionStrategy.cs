@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston;
+
+public interface IBuiltinFunctionStrategy<TNode>
 {
-    public interface IBuiltinFunctionStrategy<TNode>
-    {
-        void RegisterBuiltinFunctions(ParseContext<TNode> context);
-    }
+    void RegisterBuiltinFunctions(ParseContext<TNode> context);
 }

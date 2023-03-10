@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sandwych.Aston
+namespace Sandwych.Aston;
+
+public class SyntaxErrorException : Exception
 {
-    public class SyntaxErrorException : Exception
-    {
-    }
 }

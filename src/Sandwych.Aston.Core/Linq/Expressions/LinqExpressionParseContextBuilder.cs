@@ -3,29 +3,28 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Sandwych.Aston.Linq.Expressions
+namespace Sandwych.Aston.Linq.Expressions;
+
+public class LinqExpressionParseContextBuilder
 {
-    public class LinqExpressionParseContextBuilder
+    public LinqExpressionParseContextBuilder()
     {
-        public LinqExpressionParseContextBuilder()
-        {
-            this.BuiltinFunctionStrategy = DefaultBuiltinFunctionsStrategy.Instance.Value;
-        }
+        this.BuiltinFunctionStrategy = DefaultBuiltinFunctionsStrategy.Instance.Value;
+    }
 
-        public IBuiltinFunctionStrategy<Expression> BuiltinFunctionStrategy { get; private set; }
+    public IBuiltinFunctionStrategy<Expression> BuiltinFunctionStrategy { get; private set; }
 
-        public ParseContext<Expression> Build()
-        {
-            var ctx = new ParseContext<Expression>();
-            this.BuiltinFunctionStrategy.RegisterBuiltinFunctions(ctx);
+    public ParseContext<Expression> Build()
+    {
+        var ctx = new ParseContext<Expression>();
+        this.BuiltinFunctionStrategy.RegisterBuiltinFunctions(ctx);
 
-            return ctx;
-        }
+        return ctx;
+    }
 
-        public LinqExpressionParseContextBuilder ReplaceBuiltinFunctionStrategy(IBuiltinFunctionStrategy<Expression> strategy)
-        {
-            this.BuiltinFunctionStrategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
-            return this;
-        }
+    public LinqExpressionParseContextBuilder ReplaceBuiltinFunctionStrategy(IBuiltinFunctionStrategy<Expression> strategy)
+    {
+        this.BuiltinFunctionStrategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
+        return this;
     }
 }
